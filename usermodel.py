@@ -25,6 +25,8 @@ class User(db.Model):
 class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
+    author = db.Column(db.String(255), nullable=True) 
+    genre = db.Column(db.String(255), nullable=True) 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __init__(self, title, user_id):
