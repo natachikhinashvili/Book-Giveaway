@@ -115,10 +115,9 @@ def request_interest():
         client_user = User.query.get(client_user_id)
         if client_user is None:
             return jsonify({"message": "Client user not found"}), 404
-        
-        url = 'http://localhost:5000/add_interest'
         book = Book.query.filter_by(title=book_title).first()
-        recepient = Book.query.filter_by(id=client_user_id).first()
+        recepient = Book.query.filter_by(id=client_user_id).first()     
+        url = "http://localhost:5000/book/"+book.id+"/"+recepient.id+"/add_interest"
         request.post(url, data={"book_id": book.id, "recepient": recepient})
         
         return jsonify({"message": "Request sent to owner"}), 200
