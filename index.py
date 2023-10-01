@@ -45,12 +45,13 @@ def add_book():
         author = request.form.get('author')
         genre = request.form.get('genre')
         user_id = request.form.get('user_id')
+        interests = request.form.get('interests')
 
         user = User.query.get(user_id)
         if user is None:
             return jsonify({"message": "User not found"}), 404
 
-        new_book = Book(title=title, author=author, genre=genre, user_id=user_id)
+        new_book = Book(title=title, author=author, genre=genre, user_id=user_id, interests=interests)
 
         db.session.add(new_book)
         db.session.commit()
@@ -68,28 +69,42 @@ def books():
                 'title': book.title,
                 'author': book.author,
                 'genre': book.genre,
-                'user_id': book.user_id
+                'user_id': book.user_id,
+                "interests": book.interests
             }
             book_list.append(book_data)
 
         return jsonify({'books': book_list})
     
-@app.route('/add_interest', methods=['POST'])
+@app.route('/book/<int:book_id>/<int:recepient_id>/add_interest', methods=['POST'])
 def add_interest():
     if request.method == 'POST':
         book_id = request.form.get('book_id')
-        recepient = request.form.get('recepient')
+        recepient_id = request.form.get('recepient_id')
 
         book = Book.query.get(book_id)
         if book is None:
             return jsonify({"message": "Book not found"}), 404
 
+        recepient = User.query.get(recepient_id)
         if book.title not in recepient.interests:
             recepient.interests.append(book.title)
+            book.interests.append(recepient.id)
 
         book.user_id = recepient.id
         db.session.commit()
         return jsonify({"message": "Ownership changed successfully"}), 200
+
+@app.route('/book/<int:book_id>/interested_users', methods=['GET'])
+def get_interested_users(book_id):
+    book = Book.query.get(book_id)
+
+    if book is None:
+        return jsonify({"message": "Book not found"}), 404
+
+    interested_users = [interest.user.serialize() for interest in book.interests]
+
+    return jsonify({"interested_users": interested_users}), 200
 
 @app.route('/request_interest', methods=['POST'])
 def request_interest():
@@ -107,6 +122,5 @@ def request_interest():
         request.post(url, data={"book_id": book.id, "recepient": recepient})
         
         return jsonify({"message": "Request sent to owner"}), 200
-
 if __name__ == '__main__':
     app.run(debug=True)
