@@ -74,32 +74,6 @@ def books():
 
         return jsonify({'books': book_list})
     
-@app.route('/change_ownership', methods=['POST'])
-def change_ownership():
-    if request.method == 'POST':
-        # Get the book ID and the new owner's email from the request
-        book_id = request.form.get('book_id')
-        new_owner_email = request.form.get('new_owner_email')
-
-        # Check if the book with the specified book_id exists
-        book = Book.query.get(book_id)
-        if book is None:
-            return jsonify({"message": "Book not found"}), 404
-
-        # Check if the new owner with the specified email exists
-        new_owner = User.query.filter_by(email=new_owner_email).first()
-        if new_owner is None:
-            return jsonify({"message": "New owner not found"}), 404
-
-        # Check if the new owner has an interest in the book
-        if book.title not in new_owner.interests:
-            return jsonify({"message": "New owner is not interested in this book"}), 400
-
-        # Update the book's owner to the new owner
-        book.user_id = new_owner.id
-        db.session.commit()
-        return jsonify({"message": "Ownership changed successfully"}), 200
-    
 @app.route('/add_interest', methods=['POST'])
 def add_interest():
     if request.method == 'POST':
